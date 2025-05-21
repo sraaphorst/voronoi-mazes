@@ -1,0 +1,40 @@
+### Mac OS ###
+.DS_Store
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# Gradle
+.gradle/
+build/
+/!gradle/wrapper/gradle-wrapper.jar
+/!gradle/wrapper/gradle-wrapper.properties
+
+# Staging of JavaFX jars into build/javafx
+/build/javafx/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Crash logs
+hs_err_pid*
+
+# Logs and temp
+*.log
+*.tmp
+*.swp
+
+# Eclipse / NetBeans
+.project
+.classpath
+.settings/
+nbproject/
+
+# VS Code
+.vscode/
