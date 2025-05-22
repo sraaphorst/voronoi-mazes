@@ -38,18 +38,21 @@ public class Maze {
     }
 
     public void setWall(int row, int column, Direction direction, boolean state) {
-        // Make sure that we are not trying to erase a border wall.
-        if ((row == 0 && direction == Direction.NORTH) ||
-                (row == rows-1 && direction == Direction.SOUTH) ||
+        boolean isBorder =
+                (row == 0 && direction == Direction.NORTH) ||
+                (row == rows - 1 && direction == Direction.SOUTH) ||
                 (column == 0 && direction == Direction.WEST) ||
-                (column == columns-1 && direction == Direction.EAST)) {
+                (column == columns - 1 && direction == Direction.EAST);
+
+        // Forbid erasing a permanent border wall:
+        if (isBorder && !state)
             throw new IllegalArgumentException("Cannot erase a border wall.");
-        }
+
         switch (direction) {
-            case NORTH -> southWall[row-1][column] = state;
-            case EAST -> eastWall[row][column] = state;
-            case SOUTH -> southWall[row][column] = state;
-            case WEST -> eastWall[row][column-1] = state;
+            case NORTH -> southWall[row - 1][column] = state;
+            case EAST  -> eastWall[row][column]     = state;
+            case SOUTH -> southWall[row][column]    = state;
+            case WEST  -> eastWall[row][column - 1] = state;
         }
     }
 

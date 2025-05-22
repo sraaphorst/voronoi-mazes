@@ -5,6 +5,8 @@
 
 package org.vorpal.math;
 
+import java.awt.Point;
+
 /**
  * Mote: calculates the square of the Euclidean distance.
  * There is no reason to take the sqrt when comparing distances, which is what we will
@@ -12,9 +14,9 @@ package org.vorpal.math;
  */
 final public class EuclideanMetric2D implements Metric2D {
     @Override
-    public int distance(int x1, int y1, int x2, int y2) {
-        final int dx = x1 - x2;
-        final int dy = y1 - y2;
+    public int distance(Point p1, Point p2) {
+        final int dx = p1.x - p2.x;
+        final int dy = p1.y - p2.y;
         return dx * dx + dy * dy;
     }
 }

@@ -5,7 +5,9 @@
 
 package org.vorpal.math;
 
+import java.awt.Point;
+
 @FunctionalInterface
 public interface Metric2D {
-    int distance(int x1, int y1, int x2, int y2);
+    int distance(Point p1, Point p2);
 }

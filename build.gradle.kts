@@ -45,7 +45,7 @@ tasks.register<Copy>("stageJavaFxJars") {
     from(configurations.named("runtimeClasspath").get().filter {
         it.name.startsWith("javafx-")
     })
-    into("${layout.buildDirectory}/javafx")
+    into("${layout.buildDirectory.get().asFile.absolutePath}/javafx")
 }
 
 repositories {

@@ -5,8 +5,6 @@
 
 package org.vorpal.maze;
 
-import org.vorpal.math.Metric2D;
-
 import java.util.Random;
 
 /**
@@ -14,7 +12,7 @@ import java.util.Random;
  */
 final public class BinaryTreeMazeGenerator implements MazeGenerator {
     @Override
-    public Maze generate(int rows, int columns, Metric2D metric) {
+    public Maze generate(int rows, int columns) {
         final Random rnd = new Random();
         final Maze maze = new Maze(rows, columns);
 
