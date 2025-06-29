@@ -23,7 +23,7 @@ final public class VoronoiRandomSeedStrategy implements VoronoiSeedStrategy {
     }
 
     public VoronoiRandomSeedStrategy(IntFunction<Integer> countFunction) {
-        this.countFunction = stage -> countFunction.apply(stage.depth());;
+        this.countFunction = stage -> countFunction.apply(stage.depth());
         this.rnd = new Random();
     }
 
@@ -35,7 +35,7 @@ final public class VoronoiRandomSeedStrategy implements VoronoiSeedStrategy {
     @Override
     public Optional<Set<Point>> seedsFor(Stage stage) {
         final int k = countFunction.apply(stage);
-        if (k <= 0 || stage.cells().size() < Math.max(2, k))
+        if (k < 2 || stage.cells().size() < k)
             return Optional.empty();
 
         final List<Point> available = new ArrayList<>(stage.cells());

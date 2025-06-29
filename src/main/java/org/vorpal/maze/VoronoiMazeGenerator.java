@@ -7,21 +7,12 @@ package org.vorpal.maze;
 
 import org.vorpal.math.Metric2D;
 
-import java.awt.Point;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 public class VoronoiMazeGenerator implements MazeGenerator {
     private final VoronoiSeedStrategy seedSupplier;
@@ -41,15 +32,17 @@ public class VoronoiMazeGenerator implements MazeGenerator {
     public Maze generate(int rows, int columns) {
         final Maze maze = new Maze(rows, columns);
         final Set<Point> allCells = new HashSet<>();
-        for (int r = 0; r < rows; ++r)
-            for (int c = 0; c < columns; ++c)
-                allCells.add(new Point(r, c));
+        IntStream.range(0, rows).forEach(r ->
+                IntStream.range(0, columns).forEach(c ->
+                        allCells.add(new Point(r, c))
+                )
+        );
         subdivide(maze, new Stage(0, allCells));
         return maze;
     }
 
     private void subdivide(Maze maze, Stage stage) {
-        Optional<Set<Point>> maybeSeeds = seedSupplier.seedsFor(stage);
+        final Optional<Set<Point>> maybeSeeds = seedSupplier.seedsFor(stage);
 
         if (maybeSeeds.isEmpty()) {
             fallbackFinish(maze, stage.cells());
@@ -60,17 +53,18 @@ public class VoronoiMazeGenerator implements MazeGenerator {
         final Set<Point> seeds = maybeSeeds.get();
         final Map<Point, Set<Point>> regions = new HashMap<>();
         seeds.forEach(seed -> regions.put(seed, new HashSet<>()));
-        for (Point cell : stage.cells()) {
+        stage.cells().forEach(cell -> {
             final Point nearestSeed = seeds.stream()
                     .min(Comparator.comparingInt(seed -> metric.distance(seed, cell)))
                     .orElseThrow();
             regions.get(nearestSeed).add(cell);
-        }
+        });
 
         // Build the adjacencies: for each cell, look east and south.
         // They are neighbours whenever they belong to different seeds.
         // We record that border.
-        record RegionEdge(Point seed1, Point seed2, Point cell, Maze.Direction dir) {}
+        record RegionEdge(Point seed1, Point seed2, Point cell, Maze.Direction dir) {
+        }
         final Map<Set<Point>, RegionEdge> edgeMap = new HashMap<>();
 
         for (final Point cell : stage.cells()) {
@@ -90,9 +84,9 @@ public class VoronoiMazeGenerator implements MazeGenerator {
             final int c = cell.y;
 
             // Handle the east neighbour.
-            checkNeighbour.accept(Maze.Direction.EAST, new Point(r, c+1));
+            checkNeighbour.accept(Maze.Direction.EAST, new Point(r, c + 1));
             // Handle the south neighbour.
-            checkNeighbour.accept(Maze.Direction.SOUTH, new Point(r+1, c));
+            checkNeighbour.accept(Maze.Direction.SOUTH, new Point(r + 1, c));
         }
 
         // Pick a random spanning tree over the seeds.
@@ -113,14 +107,14 @@ public class VoronoiMazeGenerator implements MazeGenerator {
         final BiConsumer<Point, Point> union = (p1, p2) ->
                 parentMap.put(find.apply(p1), find.apply(p2));
 
-        // A spanning tree across all regions requires carving #regions - 1 holes.
+        // A spanning tree across all regions requires carving (# of regions - 1) holes.
         int needed = seeds.size() - 1;
         for (final RegionEdge edge : allEdges) {
-            Point r1 = find.apply(edge.seed1);
-            Point r2 = find.apply(edge.seed2);
+            final Point r1 = find.apply(edge.seed1);
+            final Point r2 = find.apply(edge.seed2);
             if (!r1.equals(r2)) {
                 // Carve exactly that shared wall.
-                maze.carveWall(edge.cell.x, edge.cell.y, edge.dir);
+                maze.carveWall(edge.cell, edge.dir);
                 union.accept(edge.seed1, edge.seed2);
                 if (--needed == 0) break;
             }
@@ -143,26 +137,20 @@ public class VoronoiMazeGenerator implements MazeGenerator {
         unvisited.remove(start);
 
         while (!stack.isEmpty()) {
-            Point cell = stack.peek();
-            int r = cell.x, c = cell.y;
+            final Point cell = stack.peek();
 
             // find all unvisited neighbors *within* this region
-            List<Maze.Direction> nbrs = new ArrayList<>();
-            if (unvisited.contains(new Point(r-1, c))) nbrs.add(Maze.Direction.NORTH);
-            if (unvisited.contains(new Point(r, c+1))) nbrs.add(Maze.Direction.EAST);
-            if (unvisited.contains(new Point(r+1, c))) nbrs.add(Maze.Direction.SOUTH);
-            if (unvisited.contains(new Point(r, c-1))) nbrs.add(Maze.Direction.WEST);
+            final List<Maze.Direction> nbrs = new ArrayList<>();
+            if (unvisited.contains(new Point(cell.x - 1, cell.y))) nbrs.add(Maze.Direction.NORTH);
+            if (unvisited.contains(new Point(cell.x, cell.y + 1))) nbrs.add(Maze.Direction.EAST);
+            if (unvisited.contains(new Point(cell.x + 1, cell.y))) nbrs.add(Maze.Direction.SOUTH);
+            if (unvisited.contains(new Point(cell.x, cell.y - 1))) nbrs.add(Maze.Direction.WEST);
 
             if (!nbrs.isEmpty()) {
                 // carve to a random neighbor
-                Maze.Direction dir = nbrs.get(rnd.nextInt(nbrs.size()));
-                Point next = switch (dir) {
-                    case NORTH -> new Point(r-1, c);
-                    case EAST  -> new Point(r,   c+1);
-                    case SOUTH -> new Point(r+1, c);
-                    case WEST  -> new Point(r,   c-1);
-                };
-                maze.carveWall(r, c, dir);
+                final Maze.Direction dir = nbrs.get(rnd.nextInt(nbrs.size()));
+                final Point next = Maze.neighbour(cell, dir);
+                maze.carveWall(cell, dir);
                 stack.push(next);
                 unvisited.remove(next);
             } else {
@@ -171,6 +159,7 @@ public class VoronoiMazeGenerator implements MazeGenerator {
             }
         }
     }
+
 //    private void fallbackFinish(Maze maze, Set<Point> cells) {
 //        fallbackGenerator.carve(maze, cells);
 //    }

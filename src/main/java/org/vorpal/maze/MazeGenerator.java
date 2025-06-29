@@ -5,7 +5,7 @@
 
 package org.vorpal.maze;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.IntSummaryStatistics;
 
 @FunctionalInterface
@@ -32,34 +32,32 @@ public interface MazeGenerator {
             final Maze submaze = generate(subRows, subCols);
 
             // Copy the walls back into the main maze for each cell in cells.
-            for (final Point p : cells) {
-                final int r = p.x - minR;
-                final int c = p.y - minC;
-
+            cells.forEach(cell -> {
+                final Point fillCell = new Point(cell.x - minR, cell.y - minC);
                 // North
-                if (submaze.hasWall(r, c, Maze.Direction.NORTH))
-                    maze.fillWall(p.x, p.y, Maze.Direction.NORTH);
+                if (submaze.hasWall(fillCell, Maze.Direction.NORTH))
+                    maze.fillWall(cell, Maze.Direction.NORTH);
                 else
-                    maze.carveWall(p.x, p.y, Maze.Direction.NORTH);
+                    maze.carveWall(cell, Maze.Direction.NORTH);
 
                 // East
-                if (submaze.hasWall(r, c, Maze.Direction.EAST))
-                    maze.fillWall(p.x, p.y, Maze.Direction.EAST);
+                if (submaze.hasWall(fillCell, Maze.Direction.EAST))
+                    maze.fillWall(cell, Maze.Direction.EAST);
                 else
-                    maze.carveWall(p.x, p.y, Maze.Direction.EAST);
+                    maze.carveWall(cell, Maze.Direction.EAST);
 
                 // South
-                if (submaze.hasWall(r, c, Maze.Direction.SOUTH))
-                    maze.fillWall(p.x, p.y, Maze.Direction.SOUTH);
+                if (submaze.hasWall(fillCell, Maze.Direction.SOUTH))
+                    maze.fillWall(cell, Maze.Direction.SOUTH);
                 else
-                    maze.carveWall(p.x, p.y, Maze.Direction.SOUTH);
+                    maze.carveWall(cell, Maze.Direction.SOUTH);
 
                 // West
-                if (submaze.hasWall(r, c, Maze.Direction.WEST))
-                    maze.fillWall(p.x, p.y, Maze.Direction.WEST);
+                if (submaze.hasWall(fillCell, Maze.Direction.WEST))
+                    maze.fillWall(cell, Maze.Direction.WEST);
                 else
-                    maze.carveWall(p.x, p.y, Maze.Direction.WEST);
-            }
+                    maze.carveWall(cell, Maze.Direction.WEST);
+            });
         };
     }
 }

@@ -5,10 +5,12 @@
 
 package org.vorpal.maze;
 
+import java.awt.*;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
- * A simple test to produce an simple Maze for testing purposes.
+ * A simple test to produce a simple Maze for testing purposes.
  */
 final public class BinaryTreeMazeGenerator implements MazeGenerator {
     @Override
@@ -16,25 +18,26 @@ final public class BinaryTreeMazeGenerator implements MazeGenerator {
         final Random rnd = new Random();
         final Maze maze = new Maze(rows, columns);
 
-        for (int r = 0; r < rows; ++r) {
-            for (int c = 0; c < columns; ++c) {
-                // Do not carve out the bottom-right corner.
-                if (r == rows - 1 && c == columns - 1) continue;
-
-                final boolean canCarveEast  = (c < columns - 1);
-                final boolean canCarveSouth = (r < rows - 1);
-
-                if (canCarveEast && canCarveSouth)
-                    if (rnd.nextBoolean())
-                        maze.carveWall(r, c, Maze.Direction.EAST);
-                    else
-                        maze.carveWall(r, c, Maze.Direction.SOUTH);
-                else if (canCarveEast)
-                    maze.carveWall(r, c, Maze.Direction.EAST);
-                else if (canCarveSouth)
-                    maze.carveWall(r, c, Maze.Direction.SOUTH);
-            }
-        }
+        IntStream.range(0, rows).forEach(r -> {
+                    final boolean canCarveSouth = r < rows - 1;
+                    IntStream.range(0, columns).forEach(c -> {
+                        // Do not carve out the bottom-right corner.
+                        final boolean canCarveEast = c < columns - 1;
+                        final Point cell = new Point(r, c);
+                        if (canCarveEast || canCarveSouth) {
+                            if (canCarveEast && canCarveSouth)
+                                if (rnd.nextBoolean())
+                                    maze.carveWall(cell, Maze.Direction.EAST);
+                                else
+                                    maze.carveWall(cell, Maze.Direction.SOUTH);
+                            else if (canCarveEast)
+                                maze.carveWall(cell, Maze.Direction.EAST);
+                            else // canCarveSouth
+                                maze.carveWall(cell, Maze.Direction.SOUTH);
+                        }
+                    });
+                }
+        );
         return maze;
     }
 }

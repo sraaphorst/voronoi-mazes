@@ -6,11 +6,7 @@
 package org.vorpal.maze;
 
 import java.awt.Point;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * A simple depth-first recursive backtracker maze generator.
@@ -21,43 +17,45 @@ public class BacktrackerMazeGenerator implements MazeGenerator {
     @Override
     public Maze generate(int rows, int columns) {
         final Maze maze = new Maze(rows, columns);
-        final boolean[][] visited = new boolean[rows][columns];
+        final Set<Point> visited = new HashSet<>();
         final Deque<Point> stack = new ArrayDeque<>();
 
         // Start at the top-left corner.
-        stack.push(new Point(0, 0));
-        visited[0][0] = true;
+        final Point start = new Point(0, 0);
+        stack.push(start);
+        visited.add(start);
 
         while (!stack.isEmpty()) {
-            final Point p = stack.peek();
-            final int r = p.x;
-            final int c = p.y;
+            final Point cell = stack.peek();
 
             // Collect the unvisited neighbours.
             final List<Maze.Direction> neighbours = new ArrayList<>();
-            if (r > 0 && !visited[r-1][c]) neighbours.add(Maze.Direction.NORTH);
-            if (c < columns - 1 && !visited[r][c+1]) neighbours.add(Maze.Direction.EAST);
-            if (r < rows - 1 && !visited[r+1][c]) neighbours.add(Maze.Direction.SOUTH);
-            if (c > 0 && !visited[r][c-1]) neighbours.add(Maze.Direction.WEST);
+            if (cell.x > 0 && !visited.contains(Maze.neighbour(cell, Maze.Direction.NORTH)))
+                neighbours.add(Maze.Direction.NORTH);
+            if (cell.y < columns - 1 && !visited.contains(Maze.neighbour(cell, Maze.Direction.EAST)))
+                neighbours.add(Maze.Direction.EAST);
+            if (cell.x < rows - 1 && !visited.contains(Maze.neighbour(cell, Maze.Direction.SOUTH)))
+                neighbours.add(Maze.Direction.SOUTH);
+            if (cell.y > 0 && !visited.contains(Maze.neighbour(cell,  Maze.Direction.WEST)))
+                neighbours.add(Maze.Direction.WEST);
 
             if (!neighbours.isEmpty()) {
                 // Choose a random direction.
                 final Maze.Direction dir = neighbours.get(rnd.nextInt(neighbours.size()));
                 Point next;
                 switch (dir) {
-                    case NORTH -> next = new Point(r-1, c);
-                    case EAST  -> next = new Point(r, c+1);
-                    case SOUTH -> next = new Point(r+1, c);
-                    case WEST  -> next = new Point(r, c-1);
+                    case NORTH -> next = Maze.neighbour(cell, Maze.Direction.NORTH);
+                    case EAST  -> next = Maze.neighbour(cell, Maze.Direction.EAST);
+                    case SOUTH -> next = Maze.neighbour(cell, Maze.Direction.SOUTH);
+                    case WEST  -> next = Maze.neighbour(cell, Maze.Direction.WEST);
                     default    -> throw new IllegalStateException("Unexpected value: " + dir);
                 }
 
-                maze.carveWall(r, c, dir);
-                visited[next.x][next.y] = true;
+                maze.carveWall(cell, dir);
+                visited.add(next);
                 stack.push(next);
-            } else {
+            } else
                 stack.pop();
-            }
         }
 
         return maze;

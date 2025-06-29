@@ -33,7 +33,7 @@ public class VoronoiCentroidSeedStrategy implements VoronoiSeedStrategy {
     @Override
     public Optional<Set<Point>> seedsFor(Stage stage) {
         final int k = countFunction.apply(stage);
-        if (k <= 0 || stage.cells().size() < Math.max(2, k))
+        if (k < 2 || stage.cells().size() < k)
             return Optional.empty();
 
         // Compute bounding‐box to decide split-axis.
